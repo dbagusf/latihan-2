@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup Skeleton Laporan Pentest</title>
+  <style>
+    :root {
+      --primary-navy: #1a365d;
+      --accent-teal: #14b8a6;
+      --bg-light: #f8fafc;
+      --line-gray: #e2e8f0;
+      --text-dark: #334155;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #cbd5e1;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Kontainer Utama Dokumen */
+    .doc-body {
+      background-color: #ffffff;
+      width: 100%;
+      max-width: 800px;
+      padding: 50px 40px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    /* Elemen Baris Placeholder Konten (Skeleton Lines) */
+    .doc-line {
+      height: 10px;
+      background-color: var(--line-gray);
+      margin-bottom: 10px;
+      border-radius: 4px;
+      width: 100%;
+    }
+    .doc-line.accent {
+      background-color: var(--accent-teal);
+      width: 35%;
+      height: 12px;
+      margin-bottom: 15px;
+    }
+    .doc-line.short { width: 60%; }
+    .doc-line.medium { width: 75%; }
+
+    /* Gaya Judul Utama dan Section Utama */
+    .doc-title-block {
+      background-color: var(--primary-navy);
+      padding: 24px;
+      border-radius: 6px;
+      color: #ffffff;
+      margin-bottom: 30px;
+    }
+    .doc-title-block h1 {
+      margin: 0 0 6px 0;
+      font-size: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .doc-title-block .subtitle {
+      font-size: 13px;
+      color: #93c5fd;
+    }
+
+    h2 {
+      font-size: 14px;
+      color: var(--primary-navy);
+      text-transform: uppercase;
+      margin-top: 35px;
+      margin-bottom: 15px;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--line-gray);
+      padding-bottom: 5px;
+    }
+
+    h3 {
+      font-size: 12px;
+      color: #475569;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    /* Struktur doc-section Sesuai Format User */
+    .doc-section {
+      background: var(--bg-light);
+      border: 1px solid var(--line-gray);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+    }
+    .doc-section .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: bold;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    .doc-section .value {
+      font-size: 13px;
+      color: var(--primary-navy);
+      font-weight: 600;
+    }
+
+    /* Elemen Tabel Riil di Dalam Skeleton */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      font-size: 12px;
+    }
+    th {
+      background-color: var(--primary-navy);
+      color: #ffffff;
+      text-align: left;
+      padding: 8px 12px;
+      font-weight: 500;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line-gray);
+      color: var(--text-dark);
+    }
+    .badge-critical {
+      background-color: #fee2e2;
+      color: #991b1b;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 10px;
+    }
+
+    /* Kotak Kosong Khusus Gambar/Screenshot PoC */
+    .poc-wireframe-box {
+      border: 2px dashed var(--line-gray);
+      background-color: var(--bg-light);
+      border-radius: 6px;
+      padding: 15px;
+      margin: 10px 0 20px 0;
+    }
+
+    /* Penandatangan & Stempel Dokumen */
+    .sig-line {
+      font-size: 12px;
+      color: var(--text-dark);
+      margin-top: 40px;
+      text-align: right;
+    }
+    .stamp {
+      border: 2px solid var(--accent-teal);
+      color: var(--accent-teal);
+      font-weight: bold;
+      font-size: 10px;
+      padding: 6px 12px;
+      border-radius: 50%;
+      display: inline-block;
+      transform: rotate(-15deg);
+      text-align: center;
+      position: absolute;
+      bottom: 35px;
+      right: 250px;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="doc-body">
+    
+    <div class="doc-title-block">
+      <h1>Laporan Penetration Testing</h1> 
+      <div class="subtitle">Disusun oleh: Nama | Tanggal: 31 Agustus 2023</div>
+    </div>
+
+    <h2>Ringkasan Eksekutif</h2>
+    <div class="doc-line accent"></div>
+    <div class="doc-line" style="width:95%"></div>
+    <div class="doc-line" style="width:90%"></div>
+    <div class="doc-line short"></div>
+    
+    <div class="doc-section" style="margin-top: 15px;">
+      <div class="label">Temuan Utama (Critical RCE)</div>
+      <div class="value">Port 6667 rentan Remote Code Execution - Pengambilalihan Server Penuh</div>
+    </div>
+
+    <h2>Ruang Lingkup Pengujian</h2>
+    <div class="doc-line" style="width:85%"></div>
+    
+    <div class="doc-section">
+      <div class="label">Scope of Testing (Target Range)</div>
+      <div class="value">IP Range x.x.x.x/24</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 10%">No</th>
+          <th style="width: 45%">Alamat IP</th>
+          <th style="width: 45%">Port yang Terbuka</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><strong>10.0.2.8</strong></td>
+          <td>21, 22, 80, 3306, 8180</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Temuan Kerentanan dan Dampak</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 8%">No</th>
+          <th style="width: 22%">Alamat IP</th>
+          <th style="width: 35%">Kerentanan</th>
+          <th style="width: 15%">Severity</th>
+          <th style="width: 20%">Dampak</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>10.0.2.8</td>
+          <td>VSFTPD 2.3.4 Backdoor Command Execution</td>
+          <td><span class="badge badge-critical">CRITICAL</span></td>
+          <td>Full Root Access</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Proof-Of-Concept</h2>
+    
+    <h3>Target 1 (10x.x.x.x)</h3>
+    
+    <div class="doc-section">
+      <div class="label">Tahap 1: Information Gathering</div>
+      <div class="value">Pemetaan Port & Servis Aktif</div>
+    </div>
+    <div class="doc-line" style="width:40%; margin-left: 10px;"></div>
+    <div class="poc-wireframe-box">
+      <div class="doc-line" style="width:90%; background-color: #cbd5e1;"></div>
+      <div class="doc-line" style="width:75%; background-color: #cbd5e1;"></div>
+    </div>
+
+    <div class="doc-section">
+      <div class="label">Tahap 2: Pencarian Kerentanan</div>
+      <div class="value">msfconsole search / searchsploit</div>
+    </div>
+    <div class="doc-line" style="width:50%; margin-left: 10px;"></div>
+    <div class="poc-wireframe-box">
+      <div class="doc-line" style="width:60%; background-color: #cbd5e1;"></div>
+      <div class="doc-line" style="width:45%; background-color: #cbd5e1;"></div>
+    </div>
+
+    <div class="doc-section">
+      <div class="label">Tahap 3: Eksploitasi</div>
+      <div class="value">Eksekusi Payload & Akses Shell</div>
+    </div>
+    <div class="doc-line" style="width:35%; margin-left: 10px;"></div>
+    <div class="poc-wireframe-box">
+      <div class="doc-line" style="width:85%; background-color: #cbd5e1;"></div>
+      <div class="doc-line" style="width:95%; background-color: #cbd5e1;"></div>
+    </div>
+
+    <h2>Rekomendasi Perbaikan</h2>
+    <div class="doc-line medium"></div>
+    
+    <div class="doc-section">
+      <div class="label">Rekomendasi 1</div>
+      <div class="value">Melakukan pembaruan aplikasi yang digunakan</div>
+    </div>
+    <div class="doc-section">
+      <div class="label">Rekomendasi 2</div>
+      <div class="value">Menutup port bila tidak digunakan</div>
+    </div>
+
+    <div class="doc-line" style="width:100%; margin-top:50px"></div>
+    
+    <div class="sig-line">Authorized Signature ___________________</div>
+    <div class="stamp">LEGAL &<br>BINDING</div>
+
+  </div>
+
+</body>
+</html>
