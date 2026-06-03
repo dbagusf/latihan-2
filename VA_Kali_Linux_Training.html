@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vulnerability Assessment — Kali Linux | Materi Pelatihan</title>
+<style>
+  /* =============================================
+     RESET & BASE
+  ============================================= */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --bg-dark:    #0a0e1a;
+    --bg-card:    #0f1628;
+    --bg-card2:   #141c35;
+    --border:     #1e2d55;
+    --accent:     #00d4ff;
+    --accent2:    #7c3aed;
+    --accent3:    #10b981;
+    --accent4:    #f59e0b;
+    --danger:     #ef4444;
+    --text-main:  #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim:   #94a3b8;
+    --code-bg:    #060d1f;
+    --glow:       0 0 20px rgba(0, 212, 255, 0.15);
+    --glow2:      0 0 30px rgba(124, 58, 237, 0.2);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* =============================================
+     ANIMATED BACKGROUND
+  ============================================= */
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .bg-glow-1 {
+    position: fixed;
+    top: -20%;
+    left: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0,212,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: float1 8s ease-in-out infinite;
+  }
+
+  .bg-glow-2 {
+    position: fixed;
+    bottom: -20%;
+    right: -10%;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: float2 10s ease-in-out infinite;
+  }
+
+  @keyframes float1 {
+    0%, 100% { transform: translate(0,0); }
+    50% { transform: translate(30px, 20px); }
+  }
+  @keyframes float2 {
+    0%, 100% { transform: translate(0,0); }
+    50% { transform: translate(-20px, -30px); }
+  }
+
+  /* =============================================
+     LAYOUT
+  ============================================= */
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* =============================================
+     HERO / COVER
+  ============================================= */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 24px;
+    position: relative;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    animation: fadeInDown 0.6s ease both;
+  }
+
+  .hero-title {
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.7s ease 0.1s both;
+  }
+
+  .hero-title .highlight {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    max-width: 580px;
+    margin-bottom: 48px;
+    animation: fadeInUp 0.7s ease 0.2s both;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeInUp 0.7s ease 0.3s both;
+  }
+
+  .stat-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 32px;
+    text-align: center;
+    min-width: 140px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-box:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--glow);
+  }
+
+  .stat-number {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--text-muted);
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: fadeIn 1s ease 1s both;
+  }
+
+  .scroll-arrow {
+    width: 24px;
+    height: 24px;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(45deg);
+    animation: bounce 1.5s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: rotate(45deg) translateY(0); }
+    50% { transform: rotate(45deg) translateY(6px); }
+  }
+
+  /* =============================================
+     SECTION HEADERS
+  ============================================= */
+  .section {
+    margin-bottom: 80px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .module-number {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .mod-1 { background: linear-gradient(135deg, #0ea5e9, #3b82f6); box-shadow: 0 0 20px rgba(14,165,233,0.3); }
+  .mod-2 { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 20px rgba(16,185,129,0.3); }
+  .mod-3 { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 0 20px rgba(245,158,11,0.3); }
+  .mod-4 { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 0 20px rgba(239,68,68,0.3); }
+  .mod-5 { background: linear-gradient(135deg, #8b5cf6, #7c3aed); box-shadow: 0 0 20px rgba(139,92,246,0.3); }
+
+  .section-title-group { flex: 1; }
+
+  .section-meta {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .jp-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  .jp-pill {
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .jp-theory { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+  .jp-practice { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+  .jp-total { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.25); }
+
+  /* =============================================
+     CARDS
+  ============================================= */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .card:hover {
+    border-color: rgba(0,212,255,0.25);
+    box-shadow: var(--glow);
+  }
+
+  .card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-title .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .icon-blue { background: rgba(59,130,246,0.15); }
+  .icon-green { background: rgba(16,185,129,0.15); }
+  .icon-yellow { background: rgba(245,158,11,0.15); }
+  .icon-red { background: rgba(239,68,68,0.15); }
+  .icon-purple { background: rgba(139,92,246,0.15); }
+  .icon-cyan { background: rgba(0,212,255,0.1); }
+
+  /* =============================================
+     GRID LAYOUTS
+  ============================================= */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  /* =============================================
+     BULLET LISTS
+  ============================================= */
+  .bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .bullet-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: var(--text-dim);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .bullet-list li::before {
+    content: '▸';
+    color: var(--accent);
+    font-size: 10px;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  /* =============================================
+     CODE BLOCKS
+  ============================================= */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid #1a2540;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid #1a2540;
+  }
+
+  .code-lang {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .code-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .code-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot-red { background: #ff5f57; }
+  .dot-yellow { background: #febc2e; }
+  .dot-green { background: #28c840; }
+
+  .code-body {
+    padding: 20px;
+    overflow-x: auto;
+  }
+
+  .code-body pre {
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #e2e8f0;
+    white-space: pre;
+  }
+
+  .c-comment { color: #4a5568; font-style: italic; }
+  .c-cmd { color: #68d391; }
+  .c-flag { color: #90cdf4; }
+  .c-arg { color: #fbd38d; }
+  .c-target { color: #fc8181; }
+  .c-string { color: #b794f4; }
+
+  /* =============================================
+     LAB SECTIONS
+  ============================================= */
+  .lab-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .lab-badge {
+    background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05));
+    border: 1px solid rgba(16,185,129,0.35);
+    color: #34d399;
+    padding: 4px 14px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .lab-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  /* =============================================
+     TABLES
+  ============================================= */
+  .styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .styled-table th {
+    background: rgba(0,212,255,0.08);
+    color: var(--accent);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .styled-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(30,45,85,0.5);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+
+  .styled-table tr:last-child td { border-bottom: none; }
+  .styled-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .styled-table td:first-child {
+    font-weight: 600;
+    color: var(--text-main);
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 12px;
+  }
+
+  /* =============================================
+     TAGS / PILLS
+  ============================================= */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .tag-cyan { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+  .tag-green { background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+  .tag-yellow { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+  .tag-red { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+  .tag-purple { background: rgba(139,92,246,0.1); color: #a78bfa; border: 1px solid rgba(139,92,246,0.2); }
+
+  /* =============================================
+     SUMMARY TABLE SECTION
+  ============================================= */
+  .summary-section {
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-card2));
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .summary-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+  }
+
+  .summary-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 28px;
+    color: var(--text-main);
+  }
+
+  /* =============================================
+     LAB ENV CARDS
+  ============================================= */
+  .env-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .env-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .env-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(0,212,255,0.3);
+  }
+
+  .env-name {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+
+  .env-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* =============================================
+     FLOW DIAGRAM
+  ============================================= */
+  .flow-diagram {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 24px 0;
+  }
+
+  .flow-step {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    text-align: center;
+    min-width: 120px;
+    position: relative;
+  }
+
+  .flow-step-num {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .flow-step-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .flow-arrow {
+    color: var(--accent);
+    font-size: 1.4rem;
+    padding: 0 4px;
+    opacity: 0.6;
+  }
+
+  /* =============================================
+     SEVERITY INDICATOR
+  ============================================= */
+  .severity-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+
+  .severity-box {
+    flex: 1;
+    min-width: 100px;
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .sev-critical { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+  .sev-high { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; }
+  .sev-medium { background: rgba(234,179,8,0.15); border: 1px solid rgba(234,179,8,0.3); color: #eab308; }
+  .sev-low { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; }
+  .sev-log { background: rgba(100,116,139,0.15); border: 1px solid rgba(100,116,139,0.3); color: #94a3b8; }
+
+  /* =============================================
+     ANIMATIONS
+  ============================================= */
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .fade-in-section {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .fade-in-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* =============================================
+     NAV
+  ============================================= */
+  .nav-sidebar {
+    position: fixed;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .nav-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    position: relative;
+  }
+
+  .nav-dot:hover, .nav-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    transform: scale(1.3);
+  }
+
+  .nav-dot-label {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .nav-dot:hover .nav-dot-label { opacity: 1; }
+
+  @media (max-width: 900px) {
+    .nav-sidebar { display: none; }
+  }
+
+  /* =============================================
+     TOP NAV BAR
+  ============================================= */
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: rgba(10,14,26,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topbar-logo {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .topbar-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .topbar-links a {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+  }
+
+  .topbar-links a:hover { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .topbar-links { display: none; }
+  }
+
+  /* =============================================
+     CONTENT PUSH FOR TOPBAR
+  ============================================= */
+  .content-start { padding-top: 56px; }
+
+  /* =============================================
+     TOOLTIP STYLE INFO BOXES
+  ============================================= */
+  .info-box {
+    background: rgba(0,212,255,0.05);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 0.88rem;
+    color: var(--text-dim);
+  }
+
+  .info-box strong { color: var(--accent); }
+
+  .warn-box {
+    background: rgba(245,158,11,0.05);
+    border-left: 3px solid #f59e0b;
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 0.88rem;
+    color: var(--text-dim);
+  }
+
+  .warn-box strong { color: #fbbf24; }
+
+  /* =============================================
+     DIVIDER
+  ============================================= */
+  .divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 40px 0;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- Backgrounds -->
+<div class="bg-grid"></div>
+<div class="bg-glow-1"></div>
+<div class="bg-glow-2"></div>
+
+<!-- Top Navigation Bar -->
+<nav class="topbar">
+  <div class="topbar-logo">⚡ VA Training — Kali Linux</div>
+  <div class="topbar-links">
+    <a href="#modul1">Modul 1</a>
+    <a href="#modul2">Modul 2</a>
+    <a href="#modul3">Modul 3</a>
+    <a href="#modul4">Modul 4</a>
+    <a href="#modul5">Modul 5</a>
+    <a href="#summary">Ringkasan</a>
+  </div>
+</nav>
+
+<!-- Sidebar Navigation Dots -->
+<nav class="nav-sidebar" id="navDots">
+  <button class="nav-dot active" onclick="scrollToSection('hero')">
+    <span class="nav-dot-label">Cover</span>
+  </button>
+  <button class="nav-dot" onclick="scrollToSection('modul1')">
+    <span class="nav-dot-label">Modul 1</span>
+  </button>
+  <button class="nav-dot" onclick="scrollToSection('modul2')">
+    <span class="nav-dot-label">Modul 2</span>
+  </button>
+  <button class="nav-dot" onclick="scrollToSection('modul3')">
+    <span class="nav-dot-label">Modul 3</span>
+  </button>
+  <button class="nav-dot" onclick="scrollToSection('modul4')">
+    <span class="nav-dot-label">Modul 4</span>
+  </button>
+  <button class="nav-dot" onclick="scrollToSection('modul5')">
+    <span class="nav-dot-label">Modul 5</span>
+  </button>
+  <button class="nav-dot" onclick="scrollToSection('summary')">
+    <span class="nav-dot-label">Ringkasan</span>
+  </button>
+</nav>
+
+<!-- =============================================
+     HERO SECTION
+============================================= -->
+<section class="hero content-start" id="hero">
+  <div class="hero-badge">🛡️ &nbsp; Materi Pelatihan Pentest</div>
+  <h1 class="hero-title">
+    Vulnerability<br>
+    <span class="highlight">Assessment</span>
+  </h1>
+  <p class="hero-subtitle">
+    Mencari kerentanan sesuai ruang lingkup pengujian keamanan siber menggunakan tools bawaan <strong style="color:#e2e8f0">Kali Linux</strong>
+  </p>
+  <div class="hero-stats">
+    <div class="stat-box">
+      <div class="stat-number">15</div>
+      <div class="stat-label">Total JP</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number">4</div>
+      <div class="stat-label">JP Teori</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number">11</div>
+      <div class="stat-label">JP Praktikum</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number">5</div>
+      <div class="stat-label">Modul</div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll untuk mulai</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<div class="wrapper">
+
+<!-- =============================================
+     MODUL 1
+============================================= -->
+<section class="section fade-in-section" id="modul1">
+  <div class="section-header">
+    <div class="module-number mod-1">01</div>
+    <div class="section-title-group">
+      <div class="section-meta" style="color:#60a5fa">Modul Satu</div>
+      <div class="section-title">Pengantar Vulnerability Assessment</div>
+    </div>
+    <div class="jp-badge">
+      <div class="jp-pill jp-theory">Teori: 2 JP</div>
+      <div class="jp-pill jp-total">Total: 2 JP</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- 1.1 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="icon icon-blue">🎯</div>
+        1.1 — Konsep Dasar VA
+      </div>
+      <ul class="bullet-list">
+        <li>Perbedaan Vulnerability Assessment vs Penetration Testing</li>
+        <li>Tipe-tipe kerentanan: <span class="tag tag-cyan">CVE</span> <span class="tag tag-yellow">CVSS Score</span> <span class="tag tag-purple">CWE</span></li>
+        <li>Metodologi VA: OWASP, NIST, PTES</li>
+        <li>Alur kerja VA end-to-end</li>
+      </ul>
+
+      <!-- Flow VA -->
+      <div class="flow-diagram" style="margin-top:20px">
+        <div class="flow-step">
+          <div class="flow-step-num">01</div>
+          <div class="flow-step-label">Scan</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">02</div>
+          <div class="flow-step-label">Identifikasi</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">03</div>
+          <div class="flow-step-label">Validasi</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">04</div>
+          <div class="flow-step-label">Prioritisasi</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1.2 -->
+    <div class="card">
+      <div class="card-title">
+        <div class="icon icon-cyan">🛠️</div>
+        1.2 — Ekosistem Tools VA di Kali Linux
+      </div>
+      <ul class="bullet-list">
+        <li>Kategorisasi tools bawaan Kali Linux untuk VA</li>
+        <li>Output tools: <span class="tag tag-red">False Positive</span> vs <span class="tag tag-green">True Positive</span></li>
+        <li>Cara memvalidasi temuan kerentanan secara manual</li>
+        <li>Overview lab environment yang digunakan</li>
+      </ul>
+
+      <div style="margin-top:20px">
+        <div class="styled-table" style="border:1px solid var(--border); border-radius:10px; overflow:hidden">
+          <table class="styled-table" style="margin:0">
+            <thead>
+              <tr>
+                <th>Kategori</th>
+                <th>Tools</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Network Scanner</td>
+                <td style="color:var(--text-dim)">Nmap, Nikto</td>
+              </tr>
+              <tr>
+                <td>Auto Scanner</td>
+                <td style="color:var(--text-dim)">GVM / OpenVAS</td>
+              </tr>
+              <tr>
+                <td>Web App</td>
+                <td style="color:var(--text-dim)">SQLMap, Gobuster, WPScan</td>
+              </tr>
+              <tr>
+                <td>Service VA</td>
+                <td style="color:var(--text-dim)">Enum4linux, SSLScan, Hydra</td>
+              </tr>
+              <tr>
+                <td>Exploit DB</td>
+                <td style="color:var(--text-dim)">Searchsploit</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- =============================================
+     MODUL 2
+============================================= -->
+<section class="section fade-in-section" id="modul2">
+  <div class="section-header">
+    <div class="module-number mod-2">02</div>
+    <div class="section-title-group">
+      <div class="section-meta" style="color:#34d399">Modul Dua</div>
+      <div class="section-title">Network Vulnerability Scanning</div>
+    </div>
+    <div class="jp-badge">
+      <div class="jp-pill jp-theory">Teori: 1 JP</div>
+      <div class="jp-pill jp-practice">Praktikum: 3 JP</div>
+      <div class="jp-pill jp-total">Total: 4 JP</div>
+    </div>
+  </div>
+
+  <!-- Theory -->
+  <div class="card" style="border-color:rgba(16,185,129,0.2)">
+    <div class="card-title">
+      <div class="icon icon-green">📖</div>
+      2.1 — Teori: Nmap Scripting Engine (NSE) untuk VA <span class="tag tag-green" style="margin-left:auto;font-size:10px">1 JP TEORI</span>
+    </div>
+    <div class="grid-2" style="margin-top:4px">
+      <ul class="bullet-list">
+        <li>Arsitektur NSE dan kategori script: <code style="background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:12px;color:#90cdf4">vuln</code>, <code style="background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:12px;color:#90cdf4">exploit</code>, <code style="background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:12px;color:#90cdf4">safe</code>, <code style="background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:12px;color:#90cdf4">intrusive</code></li>
+        <li>Cara membaca dan memahami output NSE</li>
+      </ul>
+      <ul class="bullet-list">
+        <li>Menentukan script yang tepat sesuai layanan</li>
+        <li>Korelasi hasil NSE dengan CVE database</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Lab 2.2 -->
+  <div class="card">
+    <div class="lab-header">
+      <div class="lab-badge">Lab 2.2</div>
+      <div class="lab-title">Nmap NSE — Vulnerability Detection</div>
+      <span class="tag tag-green" style="margin-left:auto">1.5 JP</span>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot dot-red"></div>
+          <div class="code-dot dot-yellow"></div>
+          <div class="code-dot dot-green"></div>
+        </div>
+        <div class="code-lang">bash — Nmap NSE Scripts</div>
+      </div>
+      <div class="code-body">
+        <pre><span class="c-comment"># ── Scan semua kategori vuln ──────────────────────────</span>
+<span class="c-cmd">nmap</span> <span class="c-flag">--script</span> <span class="c-arg">vuln</span> <span class="c-target">&lt;target&gt;</span>
+<span class="c-cmd">nmap</span> <span class="c-flag">--script</span> <span class="c-arg">vuln,safe</span> <span class="c-target">&lt;target&gt;</span>
+<span class="c-cmd">nmap</span> <span class="c-flag">--script</span> <span class="c-arg">vuln</span> <span class="c-flag">--script-args=unsafe=1</span> <span class="c-target">&lt;target&gt;</span>
+
+<span class="c-comment"># ── NSE Script spesifik per layanan ──────────────────</span>
+<span class="c-comment"># SMB — EternalBlue (MS17-010)</span>
+<span class="c-cmd">nmap</span> <span class="c-flag">--script</span> <span class="c-arg">smb-vuln-ms17-010</span> <span class="c-flag">-p</span> <span class="c-arg">445</span> <span class="c-target">&lt;target&gt;</span>
+
+<span class="c-comment"># SMB — MS08-067</span>
+<span class="c-cmd">nmap</span> <span class="c-flag">--script</span> <span class="c-arg">smb-vuln-ms08-067</span> <span class="c-flag">-p</span> <span class="c-arg">445</span> <span class="c-target">&lt;target&gt;</span>
+
+<span class="c-comment"># FTP — vsFTPd Backdoor</span>
+<span class="c-cmd">nmap</span> <span class="c-flag">--script</span> <span class="c-arg">ftp-vsftpd-backdoor</span> <span class="c-flag">-p</span> <span class="c-arg">21</span> <span class="c-target">&lt;target&gt;</span>
+
+<span class="c-comment"># HTTP — Shellshock</span>
+<span class="c-cmd">nmap</span> <span class="c-flag">--script</span> <span class="c-arg">http-shellshock</span> <span class="c-flag">-p</span> <span class="c-arg">80,443</span> <span class="c-target">&lt;target&gt;</span>
+
+<span class="c-comment"># SSL — Heartbleed</span>
+<span class="c-cmd">nmap</span> <span class="c-flag">--script</span> <span class="c-arg">ssl-heartbleed</span> <span class="c-flag">-p</span> <span class="c-arg">443</span> <span class="c-target">&lt;target&gt;</span>
+
+<span class="c-comment"># RDP — BlueKeep</span>
+<span class="c-cmd">nmap</span> <span class="c-flag">--script</span> <span class="c-arg">rdp-vuln-ms12-020</span> <span class="c-flag">-p</span> <span class="c-arg">3389</span> <span class="c-target">&lt;target&gt;</span></pre>
+      </div>
+    </div>
+
+    <!-- Nikto -->
+    <div class="lab-header" style="margin-top:24px">
+      <div class="lab-badge">Lab 2.2B</div>
+      <div class="lab-title">Nikto — Web Server Scanner</div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot dot-red"></div>
+          <div class="code-dot dot-yellow"></div>
+          <div class="code-dot dot-green"></div>
+        </div>
+        <div class="code-lang">bash — Nikto</div>
+      </div>
+      <div class="code-body">
+        <pre><span class="c-comment"># Scan dasar HTTP</span>
+<span class="c-cmd">nikto</span> <span class="c-flag">-h</span> <span class="c-target">http://&lt;target&gt;</span>
+
+<span class="c-comment"># Scan HTTPS</span>
+<span class="c-cmd">nikto</span> <span class="c-flag">-h</span> <span class="c-target">&lt;target&gt;</span> <span class="c-flag">-ssl -p</span> <span class="c-arg">443</span>
+
+<span class="c-comment"># Scan port non-standar</span>
+<span class="c-cmd">nikto</span> <span class="c-flag">-h</span> <span class="c-target">&lt;target&gt;</span> <span class="c-flag">-p</span> <span class="c-arg">8080</span>
+
+<span class="c-comment"># Scan dengan tuning kategori</span>
+<span class="c-cmd">nikto</span> <span class="c-flag">-h</span> <span class="c-target">&lt;target&gt;</span> <span class="c-flag">-Tuning</span> <span class="c-arg">1,2,3,4</span>
+<span class="c-comment"># 1=File Upload  2=Misconfiguration  3=Info Disclosure  4=Injection</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lab 2.3 Searchsploit -->
+  <div class="card">
+    <div class="lab-header">
+      <div class="lab-badge">Lab 2.3</div>
+      <div class="lab-title">Searchsploit — Validasi Temuan dengan Exploit DB</div>
+      <span class="tag tag-green" style="margin-left:auto">1.5 JP</span>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot dot-red"></div>
+          <div class="code-dot dot-yellow"></div>
+          <div class="code-dot dot-green"></div>
+        </div>
+        <div class="code-lang">bash — Searchsploit</div>
+      </div>
+      <div class="code-body">
+        <pre><span class="c-comment"># ── Cari berdasarkan nama & versi ────────────────────</span>
+<span class="c-cmd">searchsploit</span> vsftpd <span class="c-arg">2.3.4</span>
+<span class="c-cmd">searchsploit</span> openssh <span class="c-arg">7.4</span>
+<span class="c-cmd">searchsploit</span> apache <span class="c-arg">2.4.49</span>
+<span class="c-cmd">searchsploit</span> samba <span class="c-arg">3.0</span>
+
+<span class="c-comment"># ── Cari dengan filter tipe ──────────────────────────</span>
+<span class="c-cmd">searchsploit</span> <span class="c-flag">-t</span> remote apache
+<span class="c-cmd">searchsploit</span> <span class="c-flag">-t</span> webapps php
+
+<span class="c-comment"># ── Baca isi exploit tanpa copy ──────────────────────</span>
+<span class="c-cmd">searchsploit</span> <span class="c-flag">-x</span> <span class="c-arg">exploits/linux/remote/1234.py</span>
+
+<span class="c-comment"># ── Copy exploit ke direktori kerja ──────────────────</span>
+<span class="c-cmd">searchsploit</span> <span class="c-flag">-m</span> <span class="c-arg">exploits/linux/remote/1234.py</span>
+
+<span class="c-comment"># ── Update database exploit ───────────────────────────</span>
+<span class="c-cmd">searchsploit</span> <span class="c-flag">-u</span></pre>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:16px">
+      <strong>Alur Mapping:</strong> Nmap scan (versi service) → Searchsploit (cari exploit) → CVE detail (cek CVSS) → Catat sebagai temuan VA
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- =============================================
+     MODUL 3
+============================================= -->
+<section class="section fade-in-section" id="modul3">
+  <div class="section-header">
+    <div class="module-number mod-3">03</div>
+    <div class="section-title-group">
+      <div class="section-meta" style="color:#fbbf24">Modul Tiga</div>
+      <div class="section-title">Automated Scanner — GVM / OpenVAS</div>
+    </div>
+    <div class="jp-badge">
+      <div class="jp-pill jp-theory">Teori: 1 JP</div>
+      <div class="jp-pill jp-practice">Praktikum: 2 JP</div>
+      <div class="jp-pill jp-total">Total: 3 JP</div>
+    </div>
+  </div>
+
+  <!-- Theory -->
+  <div class="card" style="border-color:rgba(245,158,11,0.2)">
+    <div class="card-title">
+      <div class="icon icon-yellow">📖</div>
+      3.1 — Teori: Memahami GVM (Greenbone Vulnerability Manager) <span class="tag tag-yellow" style="margin-left:auto;font-size:10px">1 JP TEORI</span>
+    </div>
+    <div class="grid-2">
+      <div>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700">Arsitektur GVM</p>
+        <ul class="bullet-list">
+          <li>Scanner — engine deteksi kerentanan</li>
+          <li>Manager — orkestrasi task dan target</li>
+          <li>Web Interface — dashboard kontrol</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700">Tingkat Severity GVM</p>
+        <div class="severity-row">
+          <div class="severity-box sev-critical">Critical</div>
+          <div class="severity-box sev-high">High</div>
+          <div class="severity-box sev-medium">Medium</div>
+          <div class="severity-box sev-low">Low</div>
+          <div class="severity-box sev-log">Log</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px">
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700">Jenis Scan Config</p>
+      <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
+        <table class="styled-table" style="margin:0">
+          <thead>
+            <tr>
+              <th>Scan Config</th>
+              <th>Kecepatan</th>
+              <th>Kegunaan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Full & Fast</td>
+              <td><span class="tag tag-green">Cepat</span></td>
+              <td style="color:var(--text-dim)">Umum, cocok untuk sebagian besar kasus</td>
+            </tr>
+            <tr>
+              <td>Full & Fast Ultimate</td>
+              <td><span class="tag tag-yellow">Sedang</span></td>
+              <td style="color:var(--text-dim)">Lebih agresif, bisa mempengaruhi layanan</td>
+            </tr>
+            <tr>
+              <td>Full & Deep</td>
+              <td><span class="tag tag-red">Lambat</span></td>
+              <td style="color:var(--text-dim)">Komprehensif, untuk audit mendalam</td>
+            </tr>
+            <tr>
+              <td>Host Discovery</td>
+              <td><span class="tag tag-green">Sangat Cepat</span></td>
+              <td style="color:var(--text-dim)">Hanya deteksi host aktif</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lab 3.2 -->
+  <div class="card">
+    <div class="lab-header">
+      <div class="lab-badge">Lab 3.2</div>
+      <div class="lab-title">GVM End-to-End Scanning</div>
+      <span class="tag tag-green" style="margin-left:auto">2 JP</span>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot dot-red"></div>
+          <div class="code-dot dot-yellow"></div>
+          <div class="code-dot dot-green"></div>
+        </div>
+        <div class="code-lang">bash — Setup GVM</div>
+      </div>
+      <div class="code-body">
+        <pre><span class="c-comment"># ── Inisialisasi (pertama kali saja) ─────────────────</span>
+<span class="c-cmd">sudo</span> gvm-setup
+
+<span class="c-comment"># ── Jalankan layanan GVM ─────────────────────────────</span>
+<span class="c-cmd">sudo</span> gvm-start
+
+<span class="c-comment"># ── Cek status instalasi ─────────────────────────────</span>
+<span class="c-cmd">sudo</span> gvm-check-setup
+
+<span class="c-comment"># ── Akses Web Interface ──────────────────────────────</span>
+<span class="c-comment"># URL      : https://127.0.0.1:9392</span>
+<span class="c-comment"># Username : admin</span></pre>
+      </div>
+    </div>
+
+    <div class="lab-header" style="margin-top:24px">
+      <div class="lab-badge">Lab 3.2B</div>
+      <div class="lab-title">Konfigurasi Target & Task di GVM</div>
+    </div>
+
+    <div class="card" style="background:var(--code-bg); border-color:#1a2540; padding:20px">
+      <ol style="list-style:decimal; padding-left:20px; display:flex; flex-direction:column; gap:12px; font-size:0.88rem;">
+        <li style="color:var(--text-dim)">Buka <strong style="color:var(--accent)">Configuration → Targets</strong> → New Target
+          <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap">
+            <span class="tag tag-cyan">Name: nama target</span>
+            <span class="tag tag-cyan">Hosts: IP/range sesuai scope</span>
+            <span class="tag tag-cyan">Port List: All IANA TCP & UDP</span>
+          </div>
+        </li>
+        <li style="color:var(--text-dim)">Buka <strong style="color:var(--accent)">Scans → Tasks → New Task</strong>
+          <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap">
+            <span class="tag tag-yellow">Target: pilih target yg dibuat</span>
+            <span class="tag tag-yellow">Scanner: OpenVAS Default</span>
+            <span class="tag tag-yellow">Scan Config: Full and Fast</span>
+          </div>
+        </li>
+        <li style="color:var(--text-dim)">Simpan → klik <strong style="color:#34d399">▶ Start</strong> untuk menjalankan scan</li>
+      </ol>
+    </div>
+
+    <div class="lab-header" style="margin-top:24px">
+      <div class="lab-badge">Lab 3.2C</div>
+      <div class="lab-title">Analisis Hasil Scan GVM</div>
+    </div>
+
+    <div class="grid-3">
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:12px;padding:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:8px">Detail Temuan</div>
+        <ul class="bullet-list">
+          <li>Summary — deskripsi kerentanan</li>
+          <li>Insight — penjelasan teknis</li>
+          <li>Detection Result — bukti</li>
+        </ul>
+      </div>
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:12px;padding:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:8px">Filter & Prioritas</div>
+        <ul class="bullet-list">
+          <li>Filter mulai dari Critical</li>
+          <li>Cek CVSS Score setiap temuan</li>
+          <li>Urutkan berdasarkan severity</li>
+        </ul>
+      </div>
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:12px;padding:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:8px">Validasi Temuan</div>
+        <ul class="bullet-list">
+          <li>Cek false positive secara manual</li>
+          <li>Cross-check dengan Nmap</li>
+          <li>Konfirmasi dengan Searchsploit</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- =============================================
+     MODUL 4
+============================================= -->
+<section class="section fade-in-section" id="modul4">
+  <div class="section-header">
+    <div class="module-number mod-4">04</div>
+    <div class="section-title-group">
+      <div class="section-meta" style="color:#f87171">Modul Empat</div>
+      <div class="section-title">Web Application Vulnerability Assessment</div>
+    </div>
+    <div class="jp-badge">
+      <div class="jp-pill jp-theory">Teori: 1 JP</div>
+      <div class="jp-pill jp-practice">Praktikum: 3 JP</div>
+      <div class="jp-pill jp-total">Total: 4 JP</div>
+    </div>
+  </div>
+
+  <!-- Theory -->
+  <div class="card" style="border-color:rgba(239,68,68,0.2)">
+    <div class="card-title">
+      <div class="icon icon-red">📖</div>
+      4.1 — Teori: Kerentanan Aplikasi Web <span class="tag tag-red" style="margin-left:auto;font-size:10px">1 JP TEORI</span>
+    </div>
+    <div class="grid-2">
+      <div>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px">OWASP Top 10 (Referensi)</p>
+        <ul class="bullet-list">
+          <li><span class="tag tag-red">A01</span> Broken Access Control</li>
+          <li><span class="tag tag-red">A02</span> Cryptographic Failures</li>
+          <li><span class="tag tag-red">A03</span> Injection (SQLi, XSS)</li>
+          <li><span class="tag tag-red">A04</span> Insecure Design</li>
+          <li><span class="tag tag-red">A05</span> Security Misconfiguration</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Cara Kerja Tools Web VA</p>
+        <ul class="bullet-list">
+          <li>Passive vs Active scanning</li>
+          <li>Crawler — menelusuri halaman</li>
+          <li>Fuzzer — uji input dengan payload</li>
+          <li>Injector — uji kerentanan injeksi</li>
+          <li>Tentukan tools sesuai target (CMS, custom app, API)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lab 4.2 Gobuster + Dirb -->
+  <div class="card">
+    <div class="lab-header">
+      <div class="lab-badge">Lab 4.2</div>
+      <div class="lab-title">Gobuster & Dirb — Directory & File Enumeration</div>
+      <span class="tag tag-green" style="margin-left:auto">1 JP</span>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot dot-red"></div>
+          <div class="code-dot dot-yellow"></div>
+          <div class="code-dot dot-green"></div>
+        </div>
+        <div class="code-lang">bash — Gobuster</div>
+      </div>
+      <div class="code-body">
+        <pre><span class="c-comment"># ── Directory brute force ─────────────────────────────</span>
+<span class="c-cmd">gobuster</span> dir <span class="c-flag">-u</span> <span class="c-target">http://&lt;target&gt;</span> <span class="c-flag">-w</span> <span class="c-arg">/usr/share/wordlists/dirb/common.txt</span>
+
+<span class="c-comment"># ── Dengan ekstensi file ──────────────────────────────</span>
+<span class="c-cmd">gobuster</span> dir <span class="c-flag">-u</span> <span class="c-target">http://&lt;target&gt;</span> <span class="c-flag">-w</span> <span class="c-arg">/usr/share/wordlists/dirb/common.txt</span> \
+          <span class="c-flag">-x</span> <span class="c-arg">php,html,txt,bak</span>
+
+<span class="c-comment"># ── DNS subdomain enumeration ─────────────────────────</span>
+<span class="c-cmd">gobuster</span> dns <span class="c-flag">-d</span> <span class="c-target">&lt;domain&gt;</span> <span class="c-flag">-w</span> <span class="c-arg">/usr/share/wordlists/dnsmap.txt</span>
+
+<span class="c-comment"># ── Virtual host scanning ─────────────────────────────</span>
+<span class="c-cmd">gobuster</span> vhost <span class="c-flag">-u</span> <span class="c-target">http://&lt;target&gt;</span> <span class="c-flag">-w</span> <span class="c-arg">/usr/share/wordlists/dirb/common.txt</span></pre>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:12px">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot dot-red"></div>
+          <div class="code-dot dot-yellow"></div>
+          <div class="code-dot dot-green"></div>
+        </div>
+        <div class="code-lang">bash — Dirb</div>
+      </div>
+      <div class="code-body">
+        <pre><span class="c-comment"># Scan default</span>
+<span class="c-cmd">dirb</span> <span class="c-target">http://&lt;target&gt;</span>
+
+<span class="c-comment"># Dengan wordlist medium</span>
+<span class="c-cmd">dirb</span> <span class="c-target">http://&lt;target&gt;</span> <span class="c-arg">/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt</span>
+
+<span class="c-comment"># Scan dengan basic authentication</span>
+<span class="c-cmd">dirb</span> <span class="c-target">http://&lt;target&gt;</span> <span class="c-flag">-u</span> <span class="c-string">admin:password</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lab 4.3 WPScan -->
+  <div class="card">
+    <div class="lab-header">
+      <div class="lab-badge">Lab 4.3</div>
+      <div class="lab-title">WPScan — CMS Vulnerability Scanner (WordPress)</div>
+      <span class="tag tag-green" style="margin-left:auto">1 JP</span>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot dot-red"></div>
+          <div class="code-dot dot-yellow"></div>
+          <div class="code-dot dot-green"></div>
+        </div>
+        <div class="code-lang">bash — WPScan</div>
+      </div>
+      <div class="code-body">
+        <pre><span class="c-comment"># ── Scan dasar ───────────────────────────────────────</span>
+<span class="c-cmd">wpscan</span> <span class="c-flag">--url</span> <span class="c-target">http://&lt;target&gt;</span>
+
+<span class="c-comment"># ── Enumerate plugin, theme, user ────────────────────</span>
+<span class="c-cmd">wpscan</span> <span class="c-flag">--url</span> <span class="c-target">http://&lt;target&gt;</span> <span class="c-flag">--enumerate</span> <span class="c-arg">vp,vt,u</span>
+<span class="c-comment"># vp = vulnerable plugins</span>
+<span class="c-comment"># vt = vulnerable themes</span>
+<span class="c-comment"># u  = enumerate users</span>
+
+<span class="c-comment"># ── Dengan API token (akses CVE lengkap) ──────────────</span>
+<span class="c-cmd">wpscan</span> <span class="c-flag">--url</span> <span class="c-target">http://&lt;target&gt;</span> <span class="c-flag">--api-token</span> <span class="c-string">&lt;TOKEN&gt;</span> <span class="c-flag">--enumerate</span> <span class="c-arg">vp</span>
+
+<span class="c-comment"># ── Deteksi plugin agresif ───────────────────────────</span>
+<span class="c-cmd">wpscan</span> <span class="c-flag">--url</span> <span class="c-target">http://&lt;target&gt;</span> <span class="c-flag">--enumerate</span> <span class="c-arg">ap</span> \
+       <span class="c-flag">--plugins-detection</span> <span class="c-arg">aggressive</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lab 4.4 SQLMap -->
+  <div class="card">
+    <div class="lab-header">
+      <div class="lab-badge">Lab 4.4</div>
+      <div class="lab-title">SQLMap — SQL Injection Detection</div>
+      <span class="tag tag-green" style="margin-left:auto">1 JP</span>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot dot-red"></div>
+          <div class="code-dot dot-yellow"></div>
+          <div class="code-dot dot-green"></div>
+        </div>
+        <div class="code-lang">bash — SQLMap</div>
+      </div>
+      <div class="code-body">
+        <pre><span class="c-comment"># ── Deteksi SQLi pada GET parameter ──────────────────</span>
+<span class="c-cmd">sqlmap</span> <span class="c-flag">-u</span> <span class="c-string">"http://&lt;target&gt;/page.php?id=1"</span> <span class="c-flag">--batch</span>
+<span class="c-cmd">sqlmap</span> <span class="c-flag">-u</span> <span class="c-string">"http://&lt;target&gt;/page.php?id=1"</span> <span class="c-flag">--dbs --batch</span>
+
+<span class="c-comment"># Naikkan level dan risiko untuk deteksi lebih dalam</span>
+<span class="c-cmd">sqlmap</span> <span class="c-flag">-u</span> <span class="c-string">"http://&lt;target&gt;/page.php?id=1"</span> <span class="c-flag">--level=3 --risk=2 --batch</span>
+
+<span class="c-comment"># ── Deteksi SQLi pada form POST ───────────────────────</span>
+<span class="c-cmd">sqlmap</span> <span class="c-flag">-u</span> <span class="c-string">"http://&lt;target&gt;/login.php"</span> \
+       <span class="c-flag">--data=</span><span class="c-string">"username=admin&amp;password=test"</span> <span class="c-flag">--batch</span>
+
+<span class="c-comment"># ── Dari file request Burp Suite ──────────────────────</span>
+<span class="c-cmd">sqlmap</span> <span class="c-flag">-r</span> <span class="c-arg">request.txt</span> <span class="c-flag">--batch --dbs</span>
+
+<span class="c-comment"># ── Deteksi SQLi dengan Cookie ───────────────────────</span>
+<span class="c-cmd">sqlmap</span> <span class="c-flag">-u</span> <span class="c-string">"http://&lt;target&gt;/dashboard.php"</span> \
+       <span class="c-flag">--cookie=</span><span class="c-string">"PHPSESSID=abc123; user=admin"</span> <span class="c-flag">--batch --dbs</span></pre>
+      </div>
+    </div>
+
+    <div class="warn-box" style="margin-top:8px">
+      <strong>⚠ Catatan:</strong> SQLMap pada fase VA digunakan hanya untuk <strong>deteksi</strong> kerentanan SQLi, bukan untuk eksploitasi penuh. Gunakan flag <code style="background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:12px;color:#90cdf4">--batch</code> untuk menghindari interaksi manual berulang.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- =============================================
+     MODUL 5
+============================================= -->
+<section class="section fade-in-section" id="modul5">
+  <div class="section-header">
+    <div class="module-number mod-5">05</div>
+    <div class="section-title-group">
+      <div class="section-meta" style="color:#a78bfa">Modul Lima — Full Praktikum</div>
+      <div class="section-title">Service & Protocol Vulnerability Assessment</div>
+    </div>
+    <div class="jp-badge">
+      <div class="jp-pill jp-practice">Praktikum: 2 JP</div>
+      <div class="jp-pill jp-total">Total: 2 JP</div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>Full Praktikum</strong> — Modul ini tidak memiliki sesi teori terpisah. Peserta langsung praktik mengacu pada konsep yang sudah dipelajari di modul sebelumnya.
+  </div>
+
+  <div class="grid-2">
+    <!-- Enum4linux -->
+    <div class="card">
+      <div class="lab-header">
+        <div class="lab-badge">Lab 5.1</div>
+        <div class="lab-title">Enum4linux — SMB/Samba</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot dot-red"></div>
+            <div class="code-dot dot-yellow"></div>
+            <div class="code-dot dot-green"></div>
+          </div>
+          <div class="code-lang">bash — Enum4linux</div>
+        </div>
+        <div class="code-body">
+          <pre><span class="c-comment"># Enumerasi lengkap</span>
+<span class="c-cmd">enum4linux</span> <span class="c-flag">-a</span> <span class="c-target">&lt;target&gt;</span>
+
+<span class="c-comment"># Enumerasi spesifik</span>
+<span class="c-cmd">enum4linux</span> <span class="c-flag">-U</span> <span class="c-target">&lt;target&gt;</span>  <span class="c-comment"># Users</span>
+<span class="c-cmd">enum4linux</span> <span class="c-flag">-S</span> <span class="c-target">&lt;target&gt;</span>  <span class="c-comment"># Shares</span>
+<span class="c-cmd">enum4linux</span> <span class="c-flag">-P</span> <span class="c-target">&lt;target&gt;</span>  <span class="c-comment"># Password policy</span>
+<span class="c-cmd">enum4linux</span> <span class="c-flag">-G</span> <span class="c-target">&lt;target&gt;</span>  <span class="c-comment"># Groups</span>
+<span class="c-cmd">enum4linux</span> <span class="c-flag">-o</span> <span class="c-target">&lt;target&gt;</span>  <span class="c-comment"># OS info</span>
+
+<span class="c-comment"># Verbose mode</span>
+<span class="c-cmd">enum4linux</span> <span class="c-flag">-v -a</span> <span class="c-target">&lt;target&gt;</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- SSLScan -->
+    <div class="card">
+      <div class="lab-header">
+        <div class="lab-badge">Lab 5.2</div>
+        <div class="lab-title">SSLScan & SSLyze — SSL/TLS</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot dot-red"></div>
+            <div class="code-dot dot-yellow"></div>
+            <div class="code-dot dot-green"></div>
+          </div>
+          <div class="code-lang">bash — SSLScan / SSLyze</div>
+        </div>
+        <div class="code-body">
+          <pre><span class="c-comment"># SSLScan — cek protokol & cipher</span>
+<span class="c-cmd">sslscan</span> <span class="c-target">&lt;target&gt;</span>:443
+
+<span class="c-comment"># SSLyze — analisis mendalam</span>
+<span class="c-cmd">sslyze</span> <span class="c-target">&lt;target&gt;</span>:443
+<span class="c-cmd">sslyze</span> <span class="c-flag">--certinfo --heartbleed --reneg</span> <span class="c-target">&lt;target&gt;</span>:443
+
+<span class="c-comment"># Yang dicek:</span>
+<span class="c-comment"># SSLv2, SSLv3    → deprecated</span>
+<span class="c-comment"># TLS 1.0, 1.1    → deprecated</span>
+<span class="c-comment"># RC4, DES, 3DES  → cipher lemah</span>
+<span class="c-comment"># Heartbleed CVE-2014-0160</span>
+<span class="c-comment"># Certificate validity & chain</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hydra -->
+    <div class="card" style="grid-column: 1 / -1">
+      <div class="lab-header">
+        <div class="lab-badge">Lab 5.3</div>
+        <div class="lab-title">Hydra — Deteksi Weak Authentication / Default Credentials</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot dot-red"></div>
+            <div class="code-dot dot-yellow"></div>
+            <div class="code-dot dot-green"></div>
+          </div>
+          <div class="code-lang">bash — Hydra</div>
+        </div>
+        <div class="code-body">
+          <pre><span class="c-comment"># ── SSH ──────────────────────────────────────────────</span>
+<span class="c-cmd">hydra</span> <span class="c-flag">-l</span> <span class="c-string">admin</span> <span class="c-flag">-P</span> <span class="c-arg">/usr/share/wordlists/rockyou.txt</span> ssh://<span class="c-target">&lt;target&gt;</span>
+
+<span class="c-comment"># ── FTP ──────────────────────────────────────────────</span>
+<span class="c-cmd">hydra</span> <span class="c-flag">-l</span> <span class="c-string">admin</span> <span class="c-flag">-P</span> <span class="c-arg">/usr/share/wordlists/rockyou.txt</span> ftp://<span class="c-target">&lt;target&gt;</span>
+
+<span class="c-comment"># ── HTTP Form POST ────────────────────────────────────</span>
+<span class="c-cmd">hydra</span> <span class="c-flag">-l</span> <span class="c-string">admin</span> <span class="c-flag">-P</span> <span class="c-arg">/usr/share/wordlists/rockyou.txt</span> \
+  http-post-form <span class="c-string">"/login.php:username=^USER^&amp;password=^PASS^:Invalid"</span>
+
+<span class="c-comment"># ── RDP ──────────────────────────────────────────────</span>
+<span class="c-cmd">hydra</span> <span class="c-flag">-l</span> <span class="c-string">administrator</span> <span class="c-flag">-P</span> <span class="c-arg">/usr/share/wordlists/rockyou.txt</span> rdp://<span class="c-target">&lt;target&gt;</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- =============================================
+     SUMMARY
+============================================= -->
+<section class="summary-section fade-in-section" id="summary">
+  <h2 class="summary-title">📊 Ringkasan Distribusi JP</h2>
+
+  <div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:40px">
+    <table class="styled-table" style="margin:0">
+      <thead>
+        <tr>
+          <th>Modul</th>
+          <th>Topik</th>
+          <th>Teori</th>
+          <th>Praktikum</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag tag-cyan">01</span></td>
+          <td style="color:var(--text-main)">Pengantar VA & Tools Overview</td>
+          <td><span class="tag tag-purple">2 JP</span></td>
+          <td style="color:var(--text-muted)">—</td>
+          <td><span class="tag tag-cyan">2 JP</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-green">02</span></td>
+          <td style="color:var(--text-main)">Network VA — Nmap NSE + Nikto + Searchsploit</td>
+          <td><span class="tag tag-purple">1 JP</span></td>
+          <td><span class="tag tag-green">3 JP</span></td>
+          <td><span class="tag tag-cyan">4 JP</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-yellow">03</span></td>
+          <td style="color:var(--text-main)">Automated Scanner — GVM / OpenVAS</td>
+          <td><span class="tag tag-purple">1 JP</span></td>
+          <td><span class="tag tag-green">2 JP</span></td>
+          <td><span class="tag tag-cyan">3 JP</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-red">04</span></td>
+          <td style="color:var(--text-main)">Web Application VA — Gobuster, WPScan, SQLMap</td>
+          <td><span class="tag tag-purple">1 JP</span></td>
+          <td><span class="tag tag-green">3 JP</span></td>
+          <td><span class="tag tag-cyan">4 JP</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-purple">05</span></td>
+          <td style="color:var(--text-main)">Service & Protocol VA — Enum4linux, SSLScan, Hydra</td>
+          <td style="color:var(--text-muted)">—</td>
+          <td><span class="tag tag-green">2 JP</span></td>
+          <td><span class="tag tag-cyan">2 JP</span></td>
+        </tr>
+        <tr style="background:rgba(0,212,255,0.04)">
+          <td style="font-weight:800;color:var(--accent);font-family:inherit">TOTAL</td>
+          <td style="font-weight:700;color:var(--text-main)">5 Modul • 15 JP</td>
+          <td><span style="font-weight:800;color:#818cf8">4 JP</span></td>
+          <td><span style="font-weight:800;color:#34d399">11 JP</span></td>
+          <td><span style="font-weight:800;color:var(--accent)">15 JP</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Lab Environment -->
+  <h2 class="summary-title">🖥️ Lab Environment yang Direkomendasikan</h2>
+
+  <div class="env-grid">
+    <div class="env-card">
+      <div class="env-name">Metasploitable 2</div>
+      <div class="env-tags">
+        <span class="tag tag-red">SMB</span>
+        <span class="tag tag-red">FTP</span>
+        <span class="tag tag-red">SSH</span>
+        <span class="tag tag-red">SQLi</span>
+        <span class="tag tag-red">Web App</span>
+      </div>
+    </div>
+    <div class="env-card">
+      <div class="env-name">Metasploitable 3</div>
+      <div class="env-tags">
+        <span class="tag tag-yellow">RDP</span>
+        <span class="tag tag-yellow">SMB Win</span>
+        <span class="tag tag-yellow">Services</span>
+      </div>
+    </div>
+    <div class="env-card">
+      <div class="env-name">DVWA</div>
+      <div class="env-tags">
+        <span class="tag tag-purple">SQLi</span>
+        <span class="tag tag-purple">XSS</span>
+        <span class="tag tag-purple">Upload</span>
+        <span class="tag tag-purple">Brute</span>
+      </div>
+    </div>
+    <div class="env-card">
+      <div class="env-name">VulnHub: Kioptrix</div>
+      <div class="env-tags">
+        <span class="tag tag-cyan">SSL</span>
+        <span class="tag tag-cyan">SMB</span>
+        <span class="tag tag-cyan">Apache</span>
+      </div>
+    </div>
+    <div class="env-card">
+      <div class="env-name">WordPress (Local)</div>
+      <div class="env-tags">
+        <span class="tag tag-green">Plugin Vuln</span>
+        <span class="tag tag-green">Weak Creds</span>
+        <span class="tag tag-green">WPScan</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box" style="margin-top:24px">
+    <strong>✅ Semua tools pre-installed:</strong> Nmap, Nikto, GVM/OpenVAS, SQLMap, Gobuster, Dirb, WPScan, Enum4linux, SSLScan, SSLyze, Hydra, Searchsploit — semuanya sudah tersedia sebagai bawaan Kali Linux. GVM perlu diinisialisasi dengan <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;font-size:12px">sudo gvm-setup</code> untuk pertama kali.
+  </div>
+</section>
+
+</div><!-- end wrapper -->
+
+<script>
+  // ── Intersection Observer for fade-in sections ──
+  const sections = document.querySelectorAll('.fade-in-section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.08 });
+
+  sections.forEach(s => observer.observe(s));
+
+  // ── Sidebar Nav Dots active state ──
+  const sectionIds = ['hero', 'modul1', 'modul2', 'modul3', 'modul4', 'modul5', 'summary'];
+  const dots = document.querySelectorAll('.nav-dot');
+
+  function updateActiveDot() {
+    let current = 'hero';
+    sectionIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && window.scrollY >= el.offsetTop - 200) {
+        current = id;
+      }
+    });
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', sectionIds[i] === current);
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveDot);
+
+  function scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
